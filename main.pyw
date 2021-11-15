@@ -194,6 +194,7 @@ class window(wx.Frame):
         pnl.SetSizer(sizer_v)
 
         # 字体
+        # 字体均来自：字加 https://zijia.foundertype.com/
         font_title = wx.Font(pointSize=22, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False, faceName='FZZJ-YGYTKJW')
         font_contents = wx.Font(pointSize=11, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False, faceName='FZZJ-YSBKJW')
         font_open = wx.Font(pointSize=14, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False, faceName='FZZJ-SZJW')
