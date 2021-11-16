@@ -124,33 +124,45 @@ class window(wx.Frame):
     size = (400, 400)
 
     def __init__(self, parent=None, id=-1):
-        wx.Frame.__init__(self, None, id, '专注学习助手v1.2.2', size=self.size, pos=(560, 160))
+        wx.Frame.__init__(self, None, id, '专注学习助手v1.3.0', size=self.size, pos=(560, 160))
         wx.Frame.SetMinSize(self, size=self.size)
         pnl = wx.Panel(self)
 
         # 控件
-        title = wx.StaticText(pnl, label='专注学习助手 v1.2.2')
-        bt_1h = wx.Button(pnl, label='关机1小时', size=(80, 50))
-        bt_2h = wx.Button(pnl, label='关机2小时', size=(80, 50))
-        bt_3h = wx.Button(pnl, label='关机3小时', size=(80, 50))
-        bt_5m = wx.Button(pnl, label='关机5分钟', size=(80, 50))
-        bt_10m = wx.Button(pnl, label='关机10分钟', size=(80, 50))
-        bt_30m = wx.Button(pnl, label='关机半小时', size=(80, 50))
-        bt_open_r = wx.Button(pnl, label='记时间', size=(80, 50))
-        bt_open_d = wx.Button(pnl, label='设时长', size=(80, 50))
-        bt_write = wx.Button(pnl, label='写文章', size=(80, 50))
-        bt_shutdown = wx.Button(pnl, label='关机', size=(80, 50))
-        bt_quit = wx.Button(pnl, label='退出', size=(80, 50))
-        bt_about = wx.Button(pnl, label='关于', size=(80, 50))
+        title = wx.StaticText(pnl, label='专注学习助手 v1.3.0')
+        bt_1h = wx.Button(pnl, label='关机1小时', size=(90, 50))
+        bt_2h = wx.Button(pnl, label='关机2小时', size=(90, 50))
+        bt_3h = wx.Button(pnl, label='关机3小时', size=(90, 50))
+        bt_5m = wx.Button(pnl, label='关机5分钟', size=(90, 50))
+        bt_10m = wx.Button(pnl, label='关机10分钟', size=(90, 50))
+        bt_30m = wx.Button(pnl, label='关机半小时', size=(90, 50))
+        ############
+        tip_custom = wx.StaticText(pnl, label='自定义：')
+        self.input_day = wx.TextCtrl(pnl, size=(40, 22), style=wx.TE_PROCESS_ENTER)
+        tip_day = wx.StaticText(pnl, label='天')
+        self.input_hour = wx.TextCtrl(pnl, size=(40, 22), style=wx.TE_PROCESS_ENTER)
+        tip_hour = wx.StaticText(pnl, label='小时')
+        self.input_minute = wx.TextCtrl(pnl, size=(40, 22), style=wx.TE_PROCESS_ENTER)
+        tip_minute = wx.StaticText(pnl, label='分钟')
+        bt_run_custom = wx.Button(pnl, label='确定', size=(50, 30))
+        #############
+        bt_shutdown = wx.Button(pnl, label='关机', size=(65, 40))
+        bt_quit = wx.Button(pnl, label='退出', size=(65, 40))
+        bt_about = wx.Button(pnl, label='关于', size=(65, 40))
+        bt_write = wx.Button(pnl, label='文章', size=(65, 40))
 
         # 颜色
         contents_color = (224, 248, 249)
+        contents_color_2 = (170, 204, 255)
         bt_1h.SetBackgroundColour(contents_color)
         bt_2h.SetBackgroundColour(contents_color)
         bt_3h.SetBackgroundColour(contents_color)
         bt_5m.SetBackgroundColour(contents_color)
         bt_10m.SetBackgroundColour(contents_color)
         bt_30m.SetBackgroundColour(contents_color)
+        self.input_day.SetBackgroundColour(contents_color_2)
+        self.input_hour.SetBackgroundColour(contents_color_2)
+        self.input_minute.SetBackgroundColour(contents_color_2)
 
         # 事件
         bt_1h.Bind(wx.EVT_BUTTON, self.run_bt_1h)
@@ -159,12 +171,14 @@ class window(wx.Frame):
         bt_5m.Bind(wx.EVT_BUTTON, self.run_bt_5m)
         bt_10m.Bind(wx.EVT_BUTTON, self.run_bt_10m)
         bt_30m.Bind(wx.EVT_BUTTON, self.run_bt_30m)
-        bt_open_r.Bind(wx.EVT_BUTTON, self.run_open_r)
-        bt_open_d.Bind(wx.EVT_BUTTON, self.run_open_d)
-        bt_write.Bind(wx.EVT_BUTTON, self.run_write)
+        self.input_day.Bind(wx.EVT_TEXT_ENTER, self.run_custom)
+        self.input_hour.Bind(wx.EVT_TEXT_ENTER, self.run_custom)
+        self.input_minute.Bind(wx.EVT_TEXT_ENTER, self.run_custom)
+        bt_run_custom.Bind(wx.EVT_BUTTON, self.run_custom)
         bt_shutdown.Bind(wx.EVT_BUTTON, self.run_shutdown)
         bt_quit.Bind(wx.EVT_BUTTON, self.run_quit)
         bt_about.Bind(wx.EVT_BUTTON, self.run_about)
+        bt_write.Bind(wx.EVT_BUTTON, self.run_write)
 
         sizer_h_1 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_h_1.Add(title, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL, border=3)
@@ -176,28 +190,36 @@ class window(wx.Frame):
         sizer_h_3.Add(bt_5m, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL, border=3)
         sizer_h_3.Add(bt_10m, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL, border=3)
         sizer_h_3.Add(bt_30m, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL, border=3)
+        sizer_h_6 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_h_6.Add(tip_custom, proportion=0, flag=wx.ALIGN_CENTER)
+        sizer_h_6.Add(self.input_day, proportion=0, flag=wx.ALIGN_CENTER)
+        sizer_h_6.Add(tip_day, proportion=0, flag=wx.ALIGN_CENTER)
+        sizer_h_6.Add(self.input_hour, proportion=0, flag=wx.ALIGN_CENTER)
+        sizer_h_6.Add(tip_hour, proportion=0, flag=wx.ALIGN_CENTER)
+        sizer_h_6.Add(self.input_minute, proportion=0, flag=wx.ALIGN_CENTER)
+        sizer_h_6.Add(tip_minute, proportion=0, flag=wx.ALIGN_CENTER)
+        sizer_h_6.Add(bt_run_custom, proportion=0, flag=wx.ALIGN_CENTER)
         sizer_h_4 = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_h_4.Add(bt_open_r, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL, border=3)
-        sizer_h_4.Add(bt_open_d, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL, border=3)
-        sizer_h_4.Add(bt_write, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL, border=3)
         sizer_h_5 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_h_5.Add(bt_shutdown, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL, border=3)
         sizer_h_5.Add(bt_quit, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL, border=3)
         sizer_h_5.Add(bt_about, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL, border=3)
+        sizer_h_5.Add(bt_write, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL, border=3)
 
         sizer_v = wx.BoxSizer(wx.VERTICAL)
-        sizer_v.Add(sizer_h_1, proportion=2, flag=wx.ALIGN_CENTER | wx.TOP, border=10)
-        sizer_v.Add(sizer_h_2, proportion=2, flag=wx.ALIGN_CENTER | wx.TOP, border=10)
-        sizer_v.Add(sizer_h_3, proportion=2, flag=wx.ALIGN_CENTER | wx.TOP, border=10)
-        sizer_v.Add(sizer_h_4, proportion=2, flag=wx.ALIGN_CENTER | wx.TOP, border=10)
-        sizer_v.Add(sizer_h_5, proportion=2, flag=wx.ALIGN_CENTER)
+        sizer_v.Add(sizer_h_1, proportion=1, flag=wx.ALIGN_CENTER)
+        sizer_v.Add(sizer_h_2, proportion=1, flag=wx.ALIGN_CENTER | wx.TOP, border=10)
+        sizer_v.Add(sizer_h_3, proportion=1, flag=wx.ALIGN_CENTER | wx.TOP, border=10)
+        sizer_v.Add(sizer_h_6, proportion=1, flag=wx.ALIGN_CENTER | wx.TOP, border=10)
+        sizer_v.Add(sizer_h_4, proportion=1, flag=wx.ALIGN_CENTER | wx.TOP, border=10)
+        sizer_v.Add(sizer_h_5, proportion=1, flag=wx.ALIGN_CENTER)
         pnl.SetSizer(sizer_v)
 
         # 字体
         # 字体均来自：字加 https://zijia.foundertype.com/
         font_title = wx.Font(pointSize=22, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False, faceName='FZZJ-YGYTKJW')
         font_contents = wx.Font(pointSize=11, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False, faceName='FZZJ-YSBKJW')
-        font_open = wx.Font(pointSize=14, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False, faceName='FZZJ-SZJW')
+        font_change = wx.Font(pointSize=9, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False, faceName='方正颜真卿楷书 简繁')
         font_quit = wx.Font(pointSize=16, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False, faceName='FZLiHeiS ExtraBold')
         title.SetFont(font_title)
         bt_1h.SetFont(font_contents)
@@ -206,12 +228,20 @@ class window(wx.Frame):
         bt_5m.SetFont(font_contents)
         bt_10m.SetFont(font_contents)
         bt_30m.SetFont(font_contents)
-        bt_open_r.SetFont(font_open)
-        bt_open_d.SetFont(font_open)
-        bt_write.SetFont(font_open)
+        # ####################
+        tip_custom.SetFont(font_change)
+        self.input_day.SetFont(font_change)
+        tip_day.SetFont(font_change)
+        self.input_hour.SetFont(font_change)
+        tip_hour.SetFont(font_change)
+        self.input_minute.SetFont(font_change)
+        tip_minute.SetFont(font_change)
+        bt_run_custom.SetFont(font_change)
+        # ####################
         bt_shutdown.SetFont(font_quit)
         bt_quit.SetFont(font_quit)
         bt_about.SetFont(font_quit)
+        bt_write.SetFont(font_quit)
 
         # 图标
         try:
@@ -247,18 +277,6 @@ class window(wx.Frame):
         main(minute='30')
 
     @staticmethod
-    def run_open_r(event):
-        file_dir = f'{os.getcwd()}\\record.txt'
-        os.startfile(file_dir)
-        print(f'文件位置：{file_dir}')
-
-    @staticmethod
-    def run_open_d(event):
-        file_dir = f'{os.getcwd()}\\duration.txt'
-        os.startfile(file_dir)
-        print(f'文件位置：{file_dir}')
-
-    @staticmethod
     def run_shutdown(event):
         cmd.shutdown()
 
@@ -282,6 +300,32 @@ class window(wx.Frame):
             passage_str += i
 
         wx.MessageBox(passage_str, '一些想说的话')
+
+    def run_custom(self, event):
+        got_day = self.input_day.GetValue()
+        got_hour = self.input_hour.GetValue()
+        got_minute = self.input_minute.GetValue()
+
+        send_month = ''
+        send_day = ''
+        send_hour = ''
+        send_minute = ''
+
+        send_month = '0'
+        if got_day == '':
+            send_day = '0'
+        else:
+            send_day = got_day
+        if got_hour == '':
+            send_hour = '0'
+        else:
+            send_hour = got_hour
+        if got_minute == '':
+            send_minute = '0'
+        else:
+            send_minute = got_minute
+
+        main(send_month, send_day, send_hour, send_minute)
 
 
 if __name__ == '__main__':
