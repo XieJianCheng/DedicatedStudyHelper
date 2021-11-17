@@ -14,6 +14,10 @@ import wx
 class commands:
     @staticmethod
     def GetReadSave_time(run_mode):
+        if os.path.exists('record.txt') is False:
+            fo_f = open('record.txt', 'w+', encoding='utf-8')
+            fo_f.close()
+
         # %m月 %d日 %H时 %M分
         now_month = time.strftime('%m')
         now_day = time.strftime('%d')
@@ -55,6 +59,9 @@ class commands:
 
     @staticmethod
     def read_duration():
+        if os.path.exists('duration.txt') is False:
+            fo_f = open('duration.txt', 'w+', encoding='utf-8')
+            fo_f.close()
         with open('duration.txt', 'r+', encoding='utf-8') as fo1:
             got = fo1.readlines()[0]
 
@@ -100,7 +107,7 @@ class commands:
 
     @staticmethod
     def shutdown():
-        os.system('shutdown -s -t 10 -c 还没到时间不能开机，好好去复习')
+        os.system('shutdown -s -t 3 -c 还没到时间不能开机，好好去复习')
 
 
 cmd = commands()
