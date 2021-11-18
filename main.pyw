@@ -14,15 +14,23 @@ import wx
 class commands:
     @staticmethod
     def GetReadSave_time(run_mode):
-        if os.path.exists('record.txt') is False:
-            fo_f = open('record.txt', 'w+', encoding='utf-8')
-            fo_f.close()
-
         # %m月 %d日 %H时 %M分
         now_month = time.strftime('%m')
         now_day = time.strftime('%d')
         now_hour = time.strftime('%H')
         now_minute = time.strftime('%M')
+
+        if os.path.exists('record.txt') is False:
+            fo_f = open('record.txt', 'w+', encoding='utf-8')
+            _str_now_mouth = now_month
+            _str_now_day = now_day
+            _str_now_hour = now_hour
+            _str_now_minute = now_minute
+
+            write_string = f'{_str_now_mouth}{_str_now_day}{_str_now_hour}{_str_now_minute}'
+
+            fo_f.write(write_string)
+            fo_f.close()
 
         if run_mode == 'get':
             return now_month, now_day, now_hour, now_minute
@@ -61,6 +69,7 @@ class commands:
     def read_duration():
         if os.path.exists('duration.txt') is False:
             fo_f = open('duration.txt', 'w+', encoding='utf-8')
+            fo_f.write('00000000')
             fo_f.close()
         with open('duration.txt', 'r+', encoding='utf-8') as fo1:
             got = fo1.readlines()[0]
@@ -107,7 +116,7 @@ class commands:
 
     @staticmethod
     def shutdown():
-        os.system('shutdown -s -t 3 -c 还没到时间不能开机，好好去复习')
+        os.system('shutdown -s -t 1 -c 还没到时间不能开机，好好去复习')
 
 
 cmd = commands()
@@ -131,12 +140,12 @@ class window(wx.Frame):
     size = (400, 400)
 
     def __init__(self, parent=None, id=-1):
-        wx.Frame.__init__(self, None, id, '专注学习助手v1.3.0', size=self.size, pos=(560, 160))
+        wx.Frame.__init__(self, None, id, '专注学习助手v1.3.1', size=self.size, pos=(560, 160))
         wx.Frame.SetMinSize(self, size=self.size)
         pnl = wx.Panel(self)
 
         # 控件
-        title = wx.StaticText(pnl, label='专注学习助手 v1.3.0')
+        title = wx.StaticText(pnl, label='专注学习助手 v1.3.1')
         bt_1h = wx.Button(pnl, label='关机1小时', size=(90, 50))
         bt_2h = wx.Button(pnl, label='关机2小时', size=(90, 50))
         bt_3h = wx.Button(pnl, label='关机3小时', size=(90, 50))
@@ -347,3 +356,4 @@ if __name__ == '__main__':
 
 # v1.0结束时间 2021.11.9 20:23
 # v1.2结束时间 2021.11.10 13:40
+# v1.3结束时间 2021.11.17 13:05
