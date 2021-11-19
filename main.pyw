@@ -116,7 +116,7 @@ class commands:
 
     @staticmethod
     def shutdown():
-        os.system('shutdown -s -t 1 -c 还没到时间不能开机，好好去复习')
+        os.system('shutdown -s -t 0 -c 还没到时间不能开机，好好去复习')
 
 
 cmd = commands()
