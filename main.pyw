@@ -9,8 +9,7 @@
 import os
 import time
 import wx
-import sys
-import CAD_CEI
+import EAD
 
 
 class commands:
@@ -29,7 +28,7 @@ class commands:
             _str_now_hour = now_hour
             _str_now_minute = now_minute
 
-            write_string = f'{_str_now_mouth}{_str_now_day}{_str_now_hour}{_str_now_minute}'
+            write_string = EAD.compiling(f'{_str_now_mouth}{_str_now_day}{_str_now_hour}{_str_now_minute}', EAD.password_character_set(True))
 
             fo_f.write(write_string)
             fo_f.close()
@@ -39,7 +38,8 @@ class commands:
 
         elif run_mode == 'read':
             with open('record.txt', 'r+', encoding='utf-8') as fo2:
-                got = fo2.readlines()[0]
+                got = EAD.decoding(fo2.readlines()[0], EAD.password_character_set(False))
+                print(got)
             return got[0: 2], got[2: 4], got[4: 6], got[6:]
 
         elif run_mode == 'save':
@@ -48,7 +48,7 @@ class commands:
             str_now_hour = now_hour
             str_now_minute = now_minute
 
-            write_string = f'{str_now_mouth}{str_now_day}{str_now_hour}{str_now_minute}'
+            write_string = EAD.compiling(f'{str_now_mouth}{str_now_day}{str_now_hour}{str_now_minute}', EAD.password_character_set(True))
 
             with open('record.txt', 'w+', encoding='utf-8') as fo:
                 fo.write(write_string)
@@ -65,16 +65,16 @@ class commands:
             control_minute = f'0{control_minute}'
 
         with open('duration.txt', 'w+', encoding='utf-8') as fo1:
-            fo1.write(CAD_CEI.compiling(f'{control_month}{control_day}{control_hour}{control_minute}', CAD_CEI.password_character_set(True)))
+            fo1.write(EAD.compiling(f'{control_month}{control_day}{control_hour}{control_minute}', EAD.password_character_set(True)))
 
     @staticmethod
     def read_duration():
         if os.path.exists('duration.txt') is False:
             fo_f = open('duration.txt', 'w+', encoding='utf-8')
-            fo_f.write(CAD_CEI.compiling('00000000', CAD_CEI.password_character_set(True)))
+            fo_f.write(EAD.compiling('00000000', EAD.password_character_set(True)))
             fo_f.close()
         with open('duration.txt', 'r+', encoding='utf-8') as fo1:
-            got = CAD_CEI.decoding(fo1.readlines()[0], CAD_CEI.password_character_set(False))
+            got = EAD.decoding(fo1.readlines()[0], EAD.password_character_set(False))
             print(got)
 
         duration_month = int(got[0:2])
@@ -144,14 +144,15 @@ def main(month='0', day='0', hour='0', minute='0'):
 
 class window(wx.Frame):
     size = (400, 400)
+    title = '专注学习助手v1.5.0'
 
     def __init__(self, parent=None, id=-1):
-        wx.Frame.__init__(self, None, id, '专注学习助手v1.4.1', size=self.size, pos=(560, 160))
+        wx.Frame.__init__(self, None, id, self.title, size=self.size, pos=(560, 160))
         wx.Frame.SetMinSize(self, size=(350, 350))
         pnl = wx.Panel(self)
 
         # 控件
-        title = wx.StaticText(pnl, label='专注学习助手 v1.4.1')
+        title = wx.StaticText(pnl, label=self.title)
         bt_1h = wx.Button(pnl, label='关机1小时', size=(90, 50))
         bt_2h = wx.Button(pnl, label='关机2小时', size=(90, 50))
         bt_3h = wx.Button(pnl, label='关机3小时', size=(90, 50))
@@ -360,7 +361,13 @@ v1.3.0：
 
 v1.4.0：
 调用了之前写的字符串加密项目，
-使软件无解"""
+使软件无解
+
+v1.5.0：
+把时间记录也加密了，
+同时把反触发也加进关机条件里，
+只要报错了就关机，
+做到了真正的无解（至少我自己想不出解法）"""
 
         wx.MessageBox(passage_str, '软件更新日志')
 
@@ -392,11 +399,14 @@ v1.4.0：
 
 
 if __name__ == '__main__':
-    if run_check() is True:
-        app = wx.App()
-        frame = window(parent=None, id=-1)
-        frame.Show()
-        app.MainLoop()
+    try:
+        if run_check() is True:
+            app = wx.App()
+            frame = window(parent=None, id=-1)
+            frame.Show()
+            app.MainLoop()
+    except TypeError:
+        cmds.shutdown()
 
 # 下一个项目绝对不会不写注释了 hhh
 
