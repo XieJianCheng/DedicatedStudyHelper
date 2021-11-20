@@ -10,7 +10,6 @@ import os
 import time
 import wx
 import sys
-sys.path.append(r'F:\python_projects\CompilingAndDecoding')
 import CAD_CEI
 
 
