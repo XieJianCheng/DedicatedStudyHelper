@@ -9,6 +9,9 @@
 import os
 import time
 import wx
+import sys
+sys.path.append(r'F:\python_projects\CompilingAndDecoding')
+import CAD_CEI
 
 
 class commands:
@@ -63,16 +66,17 @@ class commands:
             control_minute = f'0{control_minute}'
 
         with open('duration.txt', 'w+', encoding='utf-8') as fo1:
-            fo1.write(f'{control_month}{control_day}{control_hour}{control_minute}')
+            fo1.write(CAD_CEI.compiling(f'{control_month}{control_day}{control_hour}{control_minute}', CAD_CEI.password_character_set(True)))
 
     @staticmethod
     def read_duration():
         if os.path.exists('duration.txt') is False:
             fo_f = open('duration.txt', 'w+', encoding='utf-8')
-            fo_f.write('00000000')
+            fo_f.write(CAD_CEI.compiling('00000000', CAD_CEI.password_character_set(True)))
             fo_f.close()
         with open('duration.txt', 'r+', encoding='utf-8') as fo1:
-            got = fo1.readlines()[0]
+            got = CAD_CEI.decoding(fo1.readlines()[0], CAD_CEI.password_character_set(False))
+            print(got)
 
         duration_month = int(got[0:2])
         duration_day = int(got[2:4])
@@ -80,10 +84,10 @@ class commands:
         duration_minute = int(got[6:])
 
         # 现在时间-记录时间
-        disparity_month = int(commands.GetReadSave_time('get')[0])-int(commands.GetReadSave_time('read')[0])
-        disparity_day = int(commands.GetReadSave_time('get')[1])-int(commands.GetReadSave_time('read')[1])
-        disparity_hour = int(commands.GetReadSave_time('get')[2])-int(commands.GetReadSave_time('read')[2])
-        disparity_minute = int(commands.GetReadSave_time('get')[3])-int(commands.GetReadSave_time('read')[3])
+        disparity_month = int(commands.GetReadSave_time('get')[0]) - int(commands.GetReadSave_time('read')[0])
+        disparity_day = int(commands.GetReadSave_time('get')[1]) - int(commands.GetReadSave_time('read')[1])
+        disparity_hour = int(commands.GetReadSave_time('get')[2]) - int(commands.GetReadSave_time('read')[2])
+        disparity_minute = int(commands.GetReadSave_time('get')[3]) - int(commands.GetReadSave_time('read')[3])
 
         # 计算总时差
         ########
@@ -93,9 +97,9 @@ class commands:
         all_month_disparity = 0
         ####
         all_month_disparity += 0 + disparity_month
-        all_day_disparity += all_month_disparity*30 + disparity_day
-        all_hour_disparity += all_day_disparity*24 + disparity_hour
-        all_minute_disparity += all_hour_disparity*60 + disparity_minute
+        all_day_disparity += all_month_disparity * 30 + disparity_day
+        all_hour_disparity += all_day_disparity * 24 + disparity_hour
+        all_minute_disparity += all_hour_disparity * 60 + disparity_minute
         ########
         all_minute_duration = 0
         all_hour_duration = 0
@@ -110,42 +114,45 @@ class commands:
         print(f'all: {all_minute_disparity} {all_minute_duration}')
 
         if all_minute_disparity >= all_minute_duration:
-            return True     # 到时间
+            return True  # 到时间
         else:
-            return False    # 没到时间
+            return False  # 没到时间
 
     @staticmethod
     def shutdown():
         os.system('shutdown -s -t 0 -c 还没到时间不能开机，好好去复习')
 
 
-cmd = commands()
+cmds = commands()
 
 
 def run_check():
-    full_state = cmd.read_duration()
+    full_state = cmds.read_duration()
     if full_state is True:
         return full_state
     else:
-        cmd.shutdown()
+        cmds.shutdown()
 
 
 def main(month='0', day='0', hour='0', minute='0'):
-    cmd.GetReadSave_time('save')
-    cmd.set_duration_time(month, day, hour, minute)
+    cmds.GetReadSave_time('save')
+    cmds.set_duration_time(month, day, hour, minute)
     run_check()
+
+
+########################################################################################################################
 
 
 class window(wx.Frame):
     size = (400, 400)
 
     def __init__(self, parent=None, id=-1):
-        wx.Frame.__init__(self, None, id, '专注学习助手v1.3.1', size=self.size, pos=(560, 160))
-        wx.Frame.SetMinSize(self, size=self.size)
+        wx.Frame.__init__(self, None, id, '专注学习助手v1.4.1', size=self.size, pos=(560, 160))
+        wx.Frame.SetMinSize(self, size=(350, 350))
         pnl = wx.Panel(self)
 
         # 控件
-        title = wx.StaticText(pnl, label='专注学习助手 v1.3.1')
+        title = wx.StaticText(pnl, label='专注学习助手 v1.4.1')
         bt_1h = wx.Button(pnl, label='关机1小时', size=(90, 50))
         bt_2h = wx.Button(pnl, label='关机2小时', size=(90, 50))
         bt_3h = wx.Button(pnl, label='关机3小时', size=(90, 50))
@@ -162,10 +169,11 @@ class window(wx.Frame):
         tip_minute = wx.StaticText(pnl, label='分钟')
         bt_run_custom = wx.Button(pnl, label='确定', size=(50, 30))
         #############
-        bt_shutdown = wx.Button(pnl, label='关机', size=(65, 40))
-        bt_quit = wx.Button(pnl, label='退出', size=(65, 40))
-        bt_about = wx.Button(pnl, label='关于', size=(65, 40))
-        bt_write = wx.Button(pnl, label='文章', size=(65, 40))
+        bt_shutdown = wx.Button(pnl, label='关机', size=(135, 40))
+        bt_quit = wx.Button(pnl, label='退出', size=(135, 40))
+        ######
+        bt_about = wx.Button(pnl, label='软件说明', size=(135, 40))
+        bt_log = wx.Button(pnl, label='更新日志', size=(135, 40))
 
         # 颜色
         contents_color = (224, 248, 249)
@@ -194,7 +202,7 @@ class window(wx.Frame):
         bt_shutdown.Bind(wx.EVT_BUTTON, self.run_shutdown)
         bt_quit.Bind(wx.EVT_BUTTON, self.run_quit)
         bt_about.Bind(wx.EVT_BUTTON, self.run_about)
-        bt_write.Bind(wx.EVT_BUTTON, self.run_write)
+        bt_log.Bind(wx.EVT_BUTTON, self.run_log)
 
         sizer_h_1 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_h_1.Add(title, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL, border=3)
@@ -215,28 +223,34 @@ class window(wx.Frame):
         sizer_h_6.Add(self.input_minute, proportion=0, flag=wx.ALIGN_CENTER)
         sizer_h_6.Add(tip_minute, proportion=0, flag=wx.ALIGN_CENTER)
         sizer_h_6.Add(bt_run_custom, proportion=0, flag=wx.ALIGN_CENTER)
-        sizer_h_4 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_h_5 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_h_5.Add(bt_shutdown, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL, border=3)
         sizer_h_5.Add(bt_quit, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL, border=3)
-        sizer_h_5.Add(bt_about, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL, border=3)
-        sizer_h_5.Add(bt_write, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL, border=3)
+        sizer_h_7 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_h_7.Add(bt_about, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL, border=3)
+        sizer_h_7.Add(bt_log, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL, border=3)
 
         sizer_v = wx.BoxSizer(wx.VERTICAL)
         sizer_v.Add(sizer_h_1, proportion=1, flag=wx.ALIGN_CENTER)
         sizer_v.Add(sizer_h_2, proportion=1, flag=wx.ALIGN_CENTER | wx.TOP, border=10)
         sizer_v.Add(sizer_h_3, proportion=1, flag=wx.ALIGN_CENTER | wx.TOP, border=10)
         sizer_v.Add(sizer_h_6, proportion=1, flag=wx.ALIGN_CENTER | wx.TOP, border=10)
-        sizer_v.Add(sizer_h_4, proportion=1, flag=wx.ALIGN_CENTER | wx.TOP, border=10)
         sizer_v.Add(sizer_h_5, proportion=1, flag=wx.ALIGN_CENTER)
+        sizer_v.Add(sizer_h_7, proportion=1, flag=wx.ALIGN_CENTER)
         pnl.SetSizer(sizer_v)
 
         # 字体
         # 字体均来自：字加 https://zijia.foundertype.com/
-        font_title = wx.Font(pointSize=22, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False, faceName='FZZJ-YGYTKJW')
-        font_contents = wx.Font(pointSize=11, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False, faceName='FZZJ-YSBKJW')
-        font_change = wx.Font(pointSize=9, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False, faceName='方正颜真卿楷书 简繁')
-        font_quit = wx.Font(pointSize=16, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False, faceName='FZLiHeiS ExtraBold')
+        font_title = wx.Font(pointSize=22, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False,
+                             faceName='FZZJ-YGYTKJW')
+        font_contents = wx.Font(pointSize=11, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False,
+                                faceName='FZZJ-YSBKJW')
+        font_change = wx.Font(pointSize=9, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False,
+                              faceName='方正颜真卿楷书 简繁')
+        font_quit = wx.Font(pointSize=16, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False,
+                            faceName='FZLiHeiS ExtraBold')
+        font_about = wx.Font(pointSize=16, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False,
+                            faceName='方正启功行楷 简')
         title.SetFont(font_title)
         bt_1h.SetFont(font_contents)
         bt_2h.SetFont(font_contents)
@@ -256,8 +270,8 @@ class window(wx.Frame):
         # ####################
         bt_shutdown.SetFont(font_quit)
         bt_quit.SetFont(font_quit)
-        bt_about.SetFont(font_quit)
-        bt_write.SetFont(font_quit)
+        bt_about.SetFont(font_about)
+        bt_log.SetFont(font_about)
 
         # 图标
         try:
@@ -294,7 +308,7 @@ class window(wx.Frame):
 
     @staticmethod
     def run_shutdown(event):
-        cmd.shutdown()
+        cmds.shutdown()
 
     @staticmethod
     def run_quit(event):
@@ -303,19 +317,53 @@ class window(wx.Frame):
 
     @staticmethod
     def run_write(event):
+        if os.path.exists('about.txt') is False:
+            fo = open('about.txt', 'w+', encoding='utf-8')
+            fo.close()
         file_dir = f'{os.getcwd()}\\about.txt'
         os.startfile(file_dir)
         print(f'文件位置：{file_dir}')
 
     @staticmethod
     def run_about(event):
-        with open('about.txt', 'r', encoding='utf-8') as fo:
-            passage_list = fo.readlines()
-        passage_str = """"""
-        for i in passage_list:
-            passage_str += i
+        passage_str = """软件说明：
 
-        wx.MessageBox(passage_str, '一些想说的话')
+原理：
+记录设定时的时间和关机时长，开机自启，
+用运行时的时间与上一次记录的时间作差，
+用这个差与关机时长作比较，
+时间差更大的话就说明到时间了，
+否则关机，
+关机命令是windows平台的 shutdown -s -t 0
+
+
+写这个项目后一些想说的话:
+快要期中考，怕自己复习不认真，
+就临时写了这个项目（虽然没什么用hhh）
+注释的话……后面慢慢补吧hhh，
+毕竟，这也是临时写的项目，
+很多地方都不规范，虽然能运行，但是可读性全无
+
+字体均来自：字加 https://zijia.foundertype.com/"""
+        wx.MessageBox(passage_str, '关于这个软件', wx.YES_DEFAULT)
+
+    @staticmethod
+    def run_log(event):
+        passage_str = """更新日志：
+
+v1.2.1：
+1. 换了一种时间计算方式，避免时间是负数的情况
+2. 加了打开文件、关机、退出按钮
+3. 修bug
+
+v1.3.0：
+把打开文件换成更直观的文本交互，纯粹是嫌麻烦
+
+v1.4.0：
+调用了之前写的字符串加密项目，
+使软件无解"""
+
+        wx.MessageBox(passage_str, '软件更新日志')
 
     def run_custom(self, event):
         got_day = self.input_day.GetValue()
@@ -351,9 +399,9 @@ if __name__ == '__main__':
         frame.Show()
         app.MainLoop()
 
-
 # 下一个项目绝对不会不写注释了 hhh
 
-# v1.0结束时间 2021.11.9 20:23
-# v1.2结束时间 2021.11.10 13:40
-# v1.3结束时间 2021.11.17 13:05
+# v1.0.0结束时间 2021.11.9 20:23
+# v1.2.0结束时间 2021.11.10 13:40
+# v1.3.0结束时间 2021.11.17 13:05
+# v1.4.0结束时间 2021.11.19 22:54
