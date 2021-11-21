@@ -9,7 +9,7 @@
 import os
 import time
 import wx
-import EAD
+from module import EAD
 
 
 class commands:
@@ -21,8 +21,8 @@ class commands:
         now_hour = time.strftime('%H')
         now_minute = time.strftime('%M')
 
-        if os.path.exists('record.txt') is False:
-            fo_f = open('record.txt', 'w+', encoding='utf-8')
+        if os.path.exists('data/record.txt') is False:
+            fo_f = open('data/record.txt', 'w+', encoding='utf-8')
             _str_now_mouth = now_month
             _str_now_day = now_day
             _str_now_hour = now_hour
@@ -37,7 +37,7 @@ class commands:
             return now_month, now_day, now_hour, now_minute
 
         elif run_mode == 'read':
-            with open('record.txt', 'r+', encoding='utf-8') as fo2:
+            with open('data/record.txt', 'r+', encoding='utf-8') as fo2:
                 got = EAD.decoding(fo2.readlines()[0], EAD.password_character_set(False))
                 print(got)
             return got[0: 2], got[2: 4], got[4: 6], got[6:]
@@ -50,7 +50,7 @@ class commands:
 
             write_string = EAD.compiling(f'{str_now_mouth}{str_now_day}{str_now_hour}{str_now_minute}', EAD.password_character_set(True))
 
-            with open('record.txt', 'w+', encoding='utf-8') as fo:
+            with open('data/record.txt', 'w+', encoding='utf-8') as fo:
                 fo.write(write_string)
 
     @staticmethod
@@ -64,16 +64,16 @@ class commands:
         if len(control_minute) == 1:
             control_minute = f'0{control_minute}'
 
-        with open('duration.txt', 'w+', encoding='utf-8') as fo1:
+        with open('data/duration.txt', 'w+', encoding='utf-8') as fo1:
             fo1.write(EAD.compiling(f'{control_month}{control_day}{control_hour}{control_minute}', EAD.password_character_set(True)))
 
     @staticmethod
     def read_duration():
-        if os.path.exists('duration.txt') is False:
-            fo_f = open('duration.txt', 'w+', encoding='utf-8')
+        if os.path.exists('data/duration.txt') is False:
+            fo_f = open('data/duration.txt', 'w+', encoding='utf-8')
             fo_f.write(EAD.compiling('00000000', EAD.password_character_set(True)))
             fo_f.close()
-        with open('duration.txt', 'r+', encoding='utf-8') as fo1:
+        with open('data/duration.txt', 'r+', encoding='utf-8') as fo1:
             got = EAD.decoding(fo1.readlines()[0], EAD.password_character_set(False))
             print(got)
 
@@ -119,7 +119,11 @@ class commands:
 
     @staticmethod
     def shutdown():
-        os.system('shutdown -s -t 0 -c 还没到时间不能开机，好好去复习')
+        print('in commands.shutdown()')
+        os.system('shutdown -s -t 2 -c 还没到时间不能开机，好好去复习')
+
+
+########################################################################################################################
 
 
 cmds = commands()
@@ -134,9 +138,67 @@ def run_check():
 
 
 def main(month='0', day='0', hour='0', minute='0'):
+    # 运行
     cmds.GetReadSave_time('save')
     cmds.set_duration_time(month, day, hour, minute)
     run_check()
+
+
+class blue_screen(wx.Frame):
+    size = (1938, 1123)
+
+    def __init__(self, mo, da, ho, mi, parent=None, id=-1, show_state=False):
+        # 初始化
+        wx.Frame.__init__(self, parent=None, id=-1, pos=(-10, -35))
+        wx.Frame.SetMinSize(self, size=self.size)
+        wx.Frame.SetMaxSize(self, size=self.size)
+        wx.Frame.SetSize(self, size=self.size)
+        pnl = wx.Panel(self)
+
+        # 文字控件
+        word_face = wx.StaticText(pnl, label=':(', pos=(200, 100))
+        word_contents_1 = wx.StaticText(pnl, label='你的设备遇到问题，需要关机。\n我们只收集某些错误信息，然后为你关闭电脑。', pos=(200, 320))
+        word_contents_2 = wx.StaticText(pnl, label='90%完成', pos=(200, 510))
+        img = wx.Image('image/QR.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap()                  # 假二维码
+        wx.StaticBitmap(pnl, -1, img, (200, 605), (img.GetWidth(), img.GetHeight()))    # 假二维码
+        word_more_1 = wx.StaticText(pnl, label='有关此问题的详细信息和可能的解决方法，请访问\nC:\windows\system32', pos=(520, 610))
+        word_more_2 = wx.StaticText(pnl, label='如果致电支持人员，请向他们提供以下信息：\n终止代码：YOU  SHOULD  TO  STUDY  HARD\n失败的操作：play.exe', pos=(520, 750))
+
+        # 字体
+        font_face = wx.Font(pointSize=122, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False,
+                            faceName='Microsoft YaHei')
+        font_contents = wx.Font(pointSize=40, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False,
+                                faceName='Microsoft YaHei')
+        font_more = wx.Font(pointSize=23, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False,
+                                faceName='Microsoft YaHei')
+        word_face.SetFont(font_face)
+        word_contents_1.SetFont(font_contents)
+        word_contents_2.SetFont(font_contents)
+        word_more_1.SetFont(font_more)
+        word_more_2.SetFont(font_more)
+
+        # 颜色
+        color_face = (0, 124, 224)
+        color_contents = (255, 255, 255)
+        pnl.SetBackgroundColour(color_face)
+        word_face.SetForegroundColour(color_contents)
+        word_contents_1.SetForegroundColour(color_contents)
+        word_contents_2.SetForegroundColour(color_contents)
+        word_more_1.SetForegroundColour(color_contents)
+        word_more_2.SetForegroundColour(color_contents)
+
+        if show_state is False:
+            main(mo, da, ho, mi)
+
+
+def blue(month='0', day='0', hour='0', minute='0'):
+    # 假蓝屏窗口
+    app_blue = wx.App()
+    frame_blue = blue_screen(month, day, hour, minute, parent=None, id=-1)
+    frame_blue.Show()
+
+    # 运行到这里就会进入窗口循环
+    app_blue.MainLoop()
 
 
 ########################################################################################################################
@@ -144,7 +206,7 @@ def main(month='0', day='0', hour='0', minute='0'):
 
 class window(wx.Frame):
     size = (400, 400)
-    title = '专注学习助手v1.5.0'
+    title = '专注学习助手v1.6.0'
 
     def __init__(self, parent=None, id=-1):
         wx.Frame.__init__(self, None, id, self.title, size=self.size, pos=(560, 160))
@@ -275,36 +337,36 @@ class window(wx.Frame):
 
         # 图标
         try:
-            open('icon.ico', 'rb')
+            open('image/icon.ico', 'rb')
         except FileNotFoundError:
             print("没有找到图标文件")
         else:
-            self.icon = wx.Icon(name="icon.ico", type=wx.BITMAP_TYPE_ICO)
+            self.icon = wx.Icon(name="image/icon.ico", type=wx.BITMAP_TYPE_ICO)
             self.SetIcon(self.icon)
 
     @staticmethod
     def run_bt_1h(event):
-        main(hour='1')
+        blue(hour='1')
 
     @staticmethod
     def run_bt_2h(event):
-        main(hour='2')
+        blue(hour='2')
 
     @staticmethod
     def run_bt_3h(event):
-        main(hour='3')
+        blue(hour='3')
 
     @staticmethod
     def run_bt_5m(event):
-        main(minute='5')
+        blue(minute='5')
 
     @staticmethod
     def run_bt_10m(event):
-        main(minute='10')
+        blue(minute='10')
 
     @staticmethod
     def run_bt_30m(event):
-        main(minute='30')
+        blue(minute='30')
 
     @staticmethod
     def run_shutdown(event):
@@ -343,6 +405,7 @@ class window(wx.Frame):
 注释的话……后面慢慢补吧hhh，
 毕竟，这也是临时写的项目，
 很多地方都不规范，虽然能运行，但是可读性全无
+多线程和窗口循环最为致命！！！
 
 字体均来自：字加 https://zijia.foundertype.com/"""
         wx.MessageBox(passage_str, '关于这个软件', wx.YES_DEFAULT)
@@ -367,7 +430,11 @@ v1.5.0：
 把时间记录也加密了，
 同时把反触发也加进关机条件里，
 只要报错了就关机，
-做到了真正的无解（至少我自己想不出解法）"""
+做到了真正的无解（至少我自己想不出解法）
+
+v1.6.0:
+关机之前会显示蓝屏，玩一玩hhh
+"""
 
         wx.MessageBox(passage_str, '软件更新日志')
 
@@ -395,16 +462,16 @@ v1.5.0：
         else:
             send_minute = got_minute
 
-        main(send_month, send_day, send_hour, send_minute)
+        blue(send_month, send_day, send_hour, send_minute)
 
 
 if __name__ == '__main__':
     try:
         if run_check() is True:
-            app = wx.App()
-            frame = window(parent=None, id=-1)
-            frame.Show()
-            app.MainLoop()
+            app_main = wx.App()
+            frame_main = window(parent=None, id=-1)
+            frame_main.Show()
+            app_main.MainLoop()
     except TypeError:
         cmds.shutdown()
 
