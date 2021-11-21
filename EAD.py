@@ -11,7 +11,7 @@ def password_character_set(change_type):
     用于生成密码字符集
     """
     key_list = ['[', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', ']', ',', ' ']
-    value_list = ['#$', '%u', 'w{', '@e', '_v', 'z$', '(f', '&k', '{t', ',l', ']q', '$#', 'c?', 'n?']
+    value_list = ['#$', '%u', 'w{', '@e', '_v', 'z$', '(f', '&k', '{t', ',l', ']q', '$#', 'c?', 'n!']
     if change_type:
         passwords = dict(zip(key_list, value_list))
     else:
