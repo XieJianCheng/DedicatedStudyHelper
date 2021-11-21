@@ -337,11 +337,11 @@ class window(wx.Frame):
 
         # 图标
         try:
-            open('image/icon.ico', 'rb')
+            open('image/icon_helper.ico', 'rb')
         except FileNotFoundError:
             print("没有找到图标文件")
         else:
-            self.icon = wx.Icon(name="image/icon.ico", type=wx.BITMAP_TYPE_ICO)
+            self.icon = wx.Icon(name="image/icon_helper.ico", type=wx.BITMAP_TYPE_ICO)
             self.SetIcon(self.icon)
 
     @staticmethod
