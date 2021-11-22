@@ -1,7 +1,7 @@
-import helper
+from helper import blue_screen
 import wx
 
 app = wx.App()
-frame = helper.blue_screen('0', '0', '0', '0', parent=None, id=-1, show_state=True)
+frame = blue_screen('show', '0', '0', '0', '0', parent=None, id=-1)
 frame.Show()
 app.MainLoop()

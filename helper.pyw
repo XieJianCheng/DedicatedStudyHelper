@@ -134,7 +134,7 @@ def run_check():
     if full_state is True:
         return full_state
     else:
-        cmds.shutdown()
+        blue('shutdown')
 
 
 def main(month='0', day='0', hour='0', minute='0'):
@@ -147,9 +147,9 @@ def main(month='0', day='0', hour='0', minute='0'):
 class blue_screen(wx.Frame):
     size = (1938, 1123)
 
-    def __init__(self, mo, da, ho, mi, parent=None, id=-1, show_state=False):
+    def __init__(self, run_state, mo='0', da='0', ho='0', mi='0', parent=None, id=-1):
         # 初始化
-        wx.Frame.__init__(self, parent=None, id=-1, pos=(-10, -35))
+        wx.Frame.__init__(self, None, -1, 'BSOD', pos=(-10, -35))
         wx.Frame.SetMinSize(self, size=self.size)
         wx.Frame.SetMaxSize(self, size=self.size)
         wx.Frame.SetSize(self, size=self.size)
@@ -187,16 +187,28 @@ class blue_screen(wx.Frame):
         word_more_1.SetForegroundColour(color_contents)
         word_more_2.SetForegroundColour(color_contents)
 
-        if show_state is False:
+        # 图标
+        try:
+            open('image/icon_BSOD.ico', 'rb')
+        except FileNotFoundError:
+            print("没有找到图标文件")
+        else:
+            self.icon = wx.Icon(name="image/icon_BSOD.ico", type=wx.BITMAP_TYPE_ICO)
+            self.SetIcon(self.icon)
+
+        if run_state == 'show':
+            pass
+        elif run_state == 'shutdown':
+            cmds.shutdown()
+        elif run_state == 'record':
             main(mo, da, ho, mi)
 
 
-def blue(month='0', day='0', hour='0', minute='0'):
+def blue(run_state, month='0', day='0', hour='0', minute='0'):
     # 假蓝屏窗口
     app_blue = wx.App()
-    frame_blue = blue_screen(month, day, hour, minute, parent=None, id=-1)
+    frame_blue = blue_screen(run_state, month, day, hour, minute, parent=None, id=-1)
     frame_blue.Show()
-
     # 运行到这里就会进入窗口循环
     app_blue.MainLoop()
 
@@ -206,7 +218,7 @@ def blue(month='0', day='0', hour='0', minute='0'):
 
 class window(wx.Frame):
     size = (400, 400)
-    title = '专注学习助手v1.6.0'
+    title = '专注学习助手v1.6.1'
 
     def __init__(self, parent=None, id=-1):
         wx.Frame.__init__(self, None, id, self.title, size=self.size, pos=(560, 160))
@@ -346,27 +358,27 @@ class window(wx.Frame):
 
     @staticmethod
     def run_bt_1h(event):
-        blue(hour='1')
+        blue('record', hour='1')
 
     @staticmethod
     def run_bt_2h(event):
-        blue(hour='2')
+        blue('record', hour='2')
 
     @staticmethod
     def run_bt_3h(event):
-        blue(hour='3')
+        blue('record', hour='3')
 
     @staticmethod
     def run_bt_5m(event):
-        blue(minute='5')
+        blue('record', minute='5')
 
     @staticmethod
     def run_bt_10m(event):
-        blue(minute='10')
+        blue('record', minute='10')
 
     @staticmethod
     def run_bt_30m(event):
-        blue(minute='30')
+        blue('record', minute='30')
 
     @staticmethod
     def run_shutdown(event):
@@ -406,6 +418,7 @@ class window(wx.Frame):
 毕竟，这也是临时写的项目，
 很多地方都不规范，虽然能运行，但是可读性全无
 多线程和窗口循环最为致命！！！
+Python的逻辑真的不适合写大项目
 
 字体均来自：字加 https://zijia.foundertype.com/"""
         wx.MessageBox(passage_str, '关于这个软件', wx.YES_DEFAULT)
@@ -434,6 +447,9 @@ v1.5.0：
 
 v1.6.0:
 关机之前会显示蓝屏，玩一玩hhh
+
+v1.6.1:
+解决了时间没到也可以显示蓝屏的问题
 """
 
         wx.MessageBox(passage_str, '软件更新日志')
