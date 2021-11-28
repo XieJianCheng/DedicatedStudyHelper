@@ -12,6 +12,10 @@ import time
 import wx
 from module import EAD
 
+version = 'v1.6.7'
+
+########################################################################################################################
+
 
 class commands:
     @staticmethod
@@ -121,7 +125,7 @@ class commands:
     @staticmethod
     def shutdown():
         print('in commands.shutdown()')
-        os.system('shutdown -s -t 2 -c 还没到时间不能开机，好好去复习')
+        os.system('shutdown -s -t 3 -c 还没到时间不能开机，好好去复习')
 
 
 cmds = commands()
@@ -129,7 +133,45 @@ cmds = commands()
 ########################################################################################################################
 
 
-class blue_screen(wx.Frame):
+def read_ini():
+    # 读取配置
+    with open('BSOD.ini', 'r+', encoding='utf-8') as fo:
+        got_all = fo.readlines()
+        got_color = got_all[0]
+        got_face = got_all[1]
+        got_bsod = got_all[2]
+
+    # 处理
+    processed_got_color = got_color
+    processed_got_face = got_face.strip()[1:-1]
+    processed_got_bsod = got_bsod.strip()
+
+    # 得到最后的参数
+    final_color = []        # 颜色
+    re_color = r'[0-9]'
+    tmp_color = ''
+    for i in processed_got_color:
+        if i == ',' or i == '\n':
+            final_color.append(int(tmp_color))
+            tmp_color = ''  # 清空
+        found = re.findall(re_color, i)
+        if len(found) == 1:
+            tmp_color += i
+        found = []  # 清空
+    print(f'final_color:{final_color}')  # debugging
+    tuple(final_color)
+    final_face = processed_got_face     # 脸
+    final_bsod = processed_got_bsod     # 要调用蓝屏
+
+    # 返回结果
+    return final_color, final_face, final_bsod
+
+
+run_read = read_ini()       # 读取配置
+print(run_read)     # debugging
+
+
+class blue_screen_win98(wx.Frame):
     size = (1938, 1123)
 
     def __init__(self, run_state='show', mo='0', da='0', ho='0', mi='0', parent=None, id=-1):
@@ -139,7 +181,239 @@ class blue_screen(wx.Frame):
         wx.Frame.SetMaxSize(self, size=self.size)
         wx.Frame.SetSize(self, size=self.size)
         pnl = wx.Panel(self)
-        run_read = self.read_ini()      # 读取配置
+
+        # 文字
+        word_main = """A fatal exception 0E has occurred at 0028:C0034B23.    The current
+application will be terminated.
+
+*    Press any key to terminate the current application.
+*    Press CTRL+ALT+DEL again to restart your computer.  You will
+      lose any unsaved information in all applications."""
+
+        # 控件
+        show_title = wx.StaticText(pnl, label='Windows')
+        show_word = wx.StaticText(pnl, label=word_main)
+        show_next = wx.StaticText(pnl, label='Press any key to continue _')
+
+        # 颜色
+        color_bg = (28, 0, 176)
+        color_title_bg = (168, 168, 168)
+        color_title_word = (30, 2, 176)
+        color_word_main = (249, 248, 253)
+        color_next = (249, 248, 253)
+        pnl.SetBackgroundColour(color_bg)
+        show_title.SetBackgroundColour(color_title_bg)
+        show_title.SetForegroundColour(color_title_word)
+        show_word.SetForegroundColour(color_word_main)
+        show_next.SetForegroundColour(color_next)
+
+        # 字体
+        font_all = wx.Font(pointSize=12, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False,
+                            faceName='NSimSun')
+        show_title.SetFont(font_all)
+        show_title.SetFont(font_all)
+        show_word.SetFont(font_all)
+        show_next.SetFont(font_all)
+
+        # 布局
+        sizer_h_1 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_h_1.Add(show_title, proportion=0, flag=wx.ALIGN_CENTER)
+        sizer_h_2 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_h_2.Add(show_word, proportion=0, flag=wx.ALIGN_CENTER)
+        sizer_h_3 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_h_3.Add(show_next, proportion=0, flag=wx.ALIGN_CENTER)
+        sizer_v = wx.BoxSizer(wx.VERTICAL)
+        sizer_v.Add(sizer_h_1, proportion=1, flag=wx.ALIGN_CENTER)
+        sizer_v.Add(sizer_h_2, proportion=0, flag=wx.ALIGN_CENTER)
+        sizer_v.Add(sizer_h_3, proportion=1, flag=wx.ALIGN_CENTER)
+        pnl.SetSizer(sizer_v)
+
+        # 图标
+        try:
+            open('image/icon_BSOD.ico', 'rb')
+        except FileNotFoundError:
+            print("没有找到图标文件")
+        else:
+            self.icon = wx.Icon(name="image/icon_BSOD.ico", type=wx.BITMAP_TYPE_ICO)
+            self.SetIcon(self.icon)
+
+        if run_state == 'show':
+            pass
+        elif run_state == 'shutdown':
+            cmds.shutdown()
+        elif run_state == 'record':
+            main(mo, da, ho, mi)
+
+
+class blue_screen_winxp(wx.Frame):
+    size = (1938, 1123)
+
+    def __init__(self, run_state='show', mo='0', da='0', ho='0', mi='0', parent=None, id=-1):
+        # 初始化
+        wx.Frame.__init__(self, parent, id, 'BSOD', pos=(-10, -35))
+        wx.Frame.SetMinSize(self, size=self.size)
+        wx.Frame.SetMaxSize(self, size=self.size)
+        wx.Frame.SetSize(self, size=self.size)
+        pnl = wx.Panel(self)
+
+        # 文字
+        word_all = """One of your disks needs to be checked for consistency. You
+may cancel the disk check, but it is strongly recommended
+that you continue.
+windows will now check the disk.
+
+CHKDSK is verifying files (stage 1 of 3) ...
+File verificatioin completed.
+CHKDSK is verifying indexes (stage 1 of 3) ...
+..
+Checking file system of C:
+The type of the file system is NTFS.
+
+CHKDSK is verifying files (stage 1 of 3) ...
+File verificatioin completed.
+CHKDSK is verifying indexes (stage 1 of 3) ...
+..
+Checking file system of D:
+The type of the file system is NTFS.
+
+CHKDSK is verifying files (stage 1 of 3) ...
+File verificatioin completed.
+CHKDSK is verifying indexes (stage 1 of 3) ...
+..
+Checking file system of E:
+The type of the file system is NTFS.
+
+CHKDSK is verifying files (stage 1 of 3) ...
+File verificatioin completed.
+CHKDSK is verifying indexes (stage 1 of 3) ...
+..
+Checking file system of F:
+The type of the file system is NTFS.
+
+One of your disks needs to be checked for consistency. You
+may cancel the disk check, but it is strongly recommended
+that you continue.
+windows will now check the disk.
+
+CHKDSK is verifying files (stage 1 of 3) ...
+File verification completed.
+CHKDSK is verifying indexes (stage 2 of 3) ...
+An unspecified error occurred."""
+        # 控件
+        show_word = wx.StaticText(pnl, label=word_all, pos=(100, 100))
+        img = wx.Image('image/xplogo.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap()  # 假二维码
+        wx.StaticBitmap(pnl, -1, img, (1730, 30), (img.GetWidth(), img.GetHeight()))  # 假二维码
+
+        # 颜色
+        color_word = (240, 240, 240)
+        color_bg = (90, 126, 220)
+        show_word.SetForegroundColour(color_word)
+        pnl.SetBackgroundColour(color_bg)
+
+        # 字体
+        font_word = wx.Font(pointSize=12, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False,
+                            faceName='NSimSun')
+        show_word.SetFont(font_word)
+
+        # 图标
+        try:
+            open('image/icon_BSOD.ico', 'rb')
+        except FileNotFoundError:
+            print("没有找到图标文件")
+        else:
+            self.icon = wx.Icon(name="image/icon_BSOD.ico", type=wx.BITMAP_TYPE_ICO)
+            self.SetIcon(self.icon)
+
+        if run_state == 'show':
+            pass
+        elif run_state == 'shutdown':
+            cmds.shutdown()
+        elif run_state == 'record':
+            main(mo, da, ho, mi)
+
+
+class blue_screen_win7(wx.Frame):
+    size = (1938, 1123)
+
+    def __init__(self, run_state='show', mo='0', da='0', ho='0', mi='0', parent=None, id=-1):
+        # 初始化
+        wx.Frame.__init__(self, parent, id, 'BSOD', pos=(-10, -35))
+        wx.Frame.SetMinSize(self, size=self.size)
+        wx.Frame.SetMaxSize(self, size=self.size)
+        wx.Frame.SetSize(self, size=self.size)
+        pnl = wx.Panel(self)
+
+        # 蓝屏文字
+        word_all = """A problem has been detected and windows has been shut down to prevent damage to you computer.
+
+INTERRUPT_EXCEPTION_NOT_HANDLED
+
+If this is the first time you've seen this stop error screen,
+restart your computer. If this screen appears again, follow
+these steps:
+
+Check to make sure any new hardware or software is properly installed.
+If this is a new installation, ask your hardware or software manufacturer
+for any windows updates you might need.
+
+If problems continue, disable or remove any newly installed hardware
+or software. Disable BIOS memory options such as aching or shadowing.
+If you need to use safe Mode to remove or disable components, restart
+your computer, press F8 to select Advanced Startup Options, and then
+select Safe Mode.
+
+Techical information:
+
+*** STOP: 0x0000003d (0xFFFFF800054DCF90, 0x0000000000000000,0x0000000000000000,0
+xFFFFF80003ED1490)
+
+
+Collecting data for crash dump ...
+Initializing disk for crash dump ...."""
+
+        # 文字控件
+        show_word = wx.StaticText(pnl, label=word_all, pos=(100, 100))
+
+        # 颜色
+        color_bg = (0, 0, 130)
+        color_word = (242, 245, 255)
+        pnl.SetBackgroundColour(color_bg)
+        show_word.SetForegroundColour(color_word)
+
+        # 字体
+        font_word = wx.Font(pointSize=12, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False,
+                            faceName='NSimSun')
+        show_word.SetFont(font_word)
+
+        # win7蓝屏这么丝滑的吗
+
+        # 图标
+        try:
+            open('image/icon_BSOD.ico', 'rb')
+        except FileNotFoundError:
+            print("没有找到图标文件")
+        else:
+            self.icon = wx.Icon(name="image/icon_BSOD.ico", type=wx.BITMAP_TYPE_ICO)
+            self.SetIcon(self.icon)
+
+        if run_state == 'show':
+            pass
+        elif run_state == 'shutdown':
+            cmds.shutdown()
+        elif run_state == 'record':
+            main(mo, da, ho, mi)
+
+
+class blue_screen_win10(wx.Frame):
+    size = (1938, 1123)
+
+    def __init__(self, run_state='show', mo='0', da='0', ho='0', mi='0', parent=None, id=-1):
+        # 初始化
+        wx.Frame.__init__(self, parent, id, 'BSOD', pos=(-10, -35))
+        wx.Frame.SetMinSize(self, size=self.size)
+        wx.Frame.SetMaxSize(self, size=self.size)
+        wx.Frame.SetSize(self, size=self.size)
+        pnl = wx.Panel(self)
 
         # 文字控件
         word_face = wx.StaticText(pnl, label=run_read[1], pos=(200, 100))
@@ -190,44 +464,26 @@ class blue_screen(wx.Frame):
             main(mo, da, ho, mi)
 
 
-    def read_ini(self):
-        # 读取配置
-        with open('data/BSOD.ini', 'r+', encoding='utf-8') as fo:
-            got_all = fo.readlines()
-            got_color = got_all[0]
-            got_face = got_all[1]
-
-        # 处理
-        processed_got_color = got_color
-        processed_got_face = got_face[1:-2]
-
-        # 得到最后的参数
-        final_color = []
-        re_color = r'[0-9]'
-        tmp_color = ''
-        for i in processed_got_color:
-            if i == ',' or i == '\n':
-                final_color.append(int(tmp_color))
-                tmp_color = ''  # 清空
-            found = re.findall(re_color, i)
-            if len(found) == 1:
-                tmp_color += i
-            found = []      # 清空
-        print(f'final_color:{final_color}')         # debugging
-        tuple(final_color)
-        final_face = processed_got_face
-
-        # 返回结果
-        return final_color, final_face
-
-
 def blue(run_state, month='0', day='0', hour='0', minute='0'):
     # 假蓝屏窗口
     app_blue = wx.App()
-    frame_blue = blue_screen(run_state, month, day, hour, minute, parent=None, id=-1)
+
+    # 要调用哪个蓝屏
+    if run_read[2] == 'win98':
+        frame_blue = blue_screen_win98(run_state, month, day, hour, minute, parent=None, id=-1)
+    elif run_read[2] == 'winxp':
+        frame_blue = blue_screen_winxp(run_state, month, day, hour, minute, parent=None, id=-1)
+    elif run_read[2] == 'win7':
+        frame_blue = blue_screen_win7(run_state, month, day, hour, minute, parent=None, id=-1)
+    else:
+        frame_blue = blue_screen_win10(run_state, month, day, hour, minute, parent=None, id=-1)
+
     frame_blue.Show()
     # 运行到这里就会进入窗口循环
     app_blue.MainLoop()
+
+
+########################################################################################################################
 
 
 def run_check():
@@ -250,7 +506,7 @@ def main(month='0', day='0', hour='0', minute='0'):
 
 class window(wx.Frame):
     size = (400, 400)
-    title = '专注学习助手v1.6.3'
+    title = f'专注学习助手{version}'
 
     def __init__(self, parent=None, id=-1):
         wx.Frame.__init__(self, None, id, self.title, size=self.size, pos=(560, 160))
@@ -278,8 +534,9 @@ class window(wx.Frame):
         bt_shutdown = wx.Button(pnl, label='关机', size=(135, 40))
         bt_quit = wx.Button(pnl, label='退出', size=(135, 40))
         ######
-        bt_about = wx.Button(pnl, label='软件说明', size=(135, 40))
-        bt_log = wx.Button(pnl, label='更新日志', size=(135, 40))
+        bt_ini = wx.Button(pnl, label='蓝屏配置', size=(88, 40))
+        bt_about = wx.Button(pnl, label='软件说明', size=(88, 40))
+        bt_log = wx.Button(pnl, label='更新日志', size=(88, 40))
 
         # 颜色
         contents_color = (224, 248, 249)
@@ -309,6 +566,7 @@ class window(wx.Frame):
         bt_quit.Bind(wx.EVT_BUTTON, self.run_quit)
         bt_about.Bind(wx.EVT_BUTTON, self.run_about)
         bt_log.Bind(wx.EVT_BUTTON, self.run_log)
+        bt_ini.Bind(wx.EVT_BUTTON, self.run_ini)
 
         sizer_h_1 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_h_1.Add(title, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL, border=3)
@@ -333,6 +591,7 @@ class window(wx.Frame):
         sizer_h_5.Add(bt_shutdown, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL, border=3)
         sizer_h_5.Add(bt_quit, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL, border=3)
         sizer_h_7 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_h_7.Add(bt_ini, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL, border=3)
         sizer_h_7.Add(bt_about, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL, border=3)
         sizer_h_7.Add(bt_log, proportion=1, flag=wx.ALIGN_CENTER | wx.ALL, border=3)
 
@@ -353,9 +612,9 @@ class window(wx.Frame):
                                 faceName='FZZJ-YSBKJW')
         font_change = wx.Font(pointSize=9, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False,
                               faceName='方正颜真卿楷书 简繁')
-        font_quit = wx.Font(pointSize=16, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False,
+        font_quit = wx.Font(pointSize=18, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False,
                             faceName='FZLiHeiS ExtraBold')
-        font_about = wx.Font(pointSize=16, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False,
+        font_about = wx.Font(pointSize=14, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False,
                             faceName='方正启功行楷 简')
         title.SetFont(font_title)
         bt_1h.SetFont(font_contents)
@@ -376,6 +635,7 @@ class window(wx.Frame):
         # ####################
         bt_shutdown.SetFont(font_quit)
         bt_quit.SetFont(font_quit)
+        bt_ini.SetFont(font_about)
         bt_about.SetFont(font_about)
         bt_log.SetFont(font_about)
 
@@ -414,7 +674,7 @@ class window(wx.Frame):
 
     @staticmethod
     def run_shutdown(event):
-        cmds.shutdown()
+        blue('shutdown')
 
     @staticmethod
     def run_quit(event):
@@ -432,7 +692,7 @@ class window(wx.Frame):
 
     @staticmethod
     def run_about(event):
-        passage_str = """软件说明：
+        passage_str = """软件说明
 
 原理：
 记录设定时的时间和关机时长，开机自启，
@@ -449,15 +709,31 @@ class window(wx.Frame):
 注释的话……后面慢慢补吧hhh，
 毕竟，这也是临时写的项目，
 很多地方都不规范，虽然能运行，但是可读性全无
-多线程和窗口循环最为致命！！！
-Python的逻辑真的不适合写大项目
+多线程和窗口循环最为致命！！！    # v1.6更新
+Python的逻辑真的不适合写大项目   # v1.6更新
+项目结构太杂乱了               #v1.6.4更新
 
-字体均来自：字加 https://zijia.foundertype.com/"""
+字体均来自：字加 https://zijia.foundertype.com/
+
+
+
+2021.11.28 18:19
+由于各种原因，
+我感觉这个项目已经没有写下去的意义了，
+现在就停了吧。
+最后一个版本是v1.6.7
+以后也不会再有功能更新了吧
+再见
+
+Github地址：https://www.github.com/XieJianCheng/DedicatedStudyHelper/
+"""
         wx.MessageBox(passage_str, '关于这个软件', wx.YES_DEFAULT)
 
     @staticmethod
     def run_log(event):
-        passage_str = """更新日志：
+        passage_str = f"""更新日志
+
+当前版本：{version}（最新）
 
 v1.2.1：
 1. 换了一种时间计算方式，避免时间是负数的情况
@@ -485,6 +761,16 @@ v1.6.1:
 
 v1.6.3:
 可以自定义蓝屏颜色和标题文字
+
+v1.6.5:
+新增win7蓝屏，但就是感觉没内味
+
+v1.6.6:
+又加了xp和win98的蓝屏
+
+v1.6.7:
+可以直接修改蓝屏配置，
+这应该是最后一个版本了吧，以后也不太可能会有功能更新了，版本号也不会高过v1.6了
 """
 
         wx.MessageBox(passage_str, '软件更新日志')
@@ -513,7 +799,10 @@ v1.6.3:
         else:
             send_minute = got_minute
 
-        blue(send_month, send_day, send_hour, send_minute)
+        blue('record', send_month, send_day, send_hour, send_minute)
+
+    def run_ini(self, event):
+        os.startfile('BSOD.ini')
 
 
 if __name__ == '__main__':
@@ -533,3 +822,10 @@ if __name__ == '__main__':
 # v1.3.0结束时间 2021.11.17 13:05
 # v1.4.0结束时间 2021.11.19 22:54
 # v1.6.3结束时间 2021.11.24 19:51
+# v1.6.7结束时间 2021.11.28 18:19
+
+
+
+
+# 空两行是我对这条注释的尊重，再空两行是我对项目的不舍
+# 最终结束时间 2021.11.28 18:26
