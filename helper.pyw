@@ -464,7 +464,7 @@ class blue_screen_win10(wx.Frame):
             main(mo, da, ho, mi)
 
 
-def blue(run_state, month='0', day='0', hour='0', minute='0'):
+def run_blue(run_state, month='0', day='0', hour='0', minute='0'):
     # 假蓝屏窗口
     app_blue = wx.App()
 
@@ -491,7 +491,7 @@ def run_check():
     if full_state is True:
         return full_state
     else:
-        blue('shutdown')
+        run_blue('shutdown')
 
 
 def main(month='0', day='0', hour='0', minute='0'):
@@ -650,31 +650,31 @@ class window(wx.Frame):
 
     @staticmethod
     def run_bt_1h(event):
-        blue('record', hour='1')
+        run_blue('record', hour='1')
 
     @staticmethod
     def run_bt_2h(event):
-        blue('record', hour='2')
+        run_blue('record', hour='2')
 
     @staticmethod
     def run_bt_3h(event):
-        blue('record', hour='3')
+        run_blue('record', hour='3')
 
     @staticmethod
     def run_bt_5m(event):
-        blue('record', minute='5')
+        run_blue('record', minute='5')
 
     @staticmethod
     def run_bt_10m(event):
-        blue('record', minute='10')
+        run_blue('record', minute='10')
 
     @staticmethod
     def run_bt_30m(event):
-        blue('record', minute='30')
+        run_blue('record', minute='30')
 
     @staticmethod
     def run_shutdown(event):
-        blue('shutdown')
+        run_blue('shutdown')
 
     @staticmethod
     def run_quit(event):
@@ -799,7 +799,7 @@ v1.6.7:
         else:
             send_minute = got_minute
 
-        blue('record', send_month, send_day, send_hour, send_minute)
+        run_blue('record', send_month, send_day, send_hour, send_minute)
 
     def run_ini(self, event):
         os.startfile('BSOD.ini')
@@ -813,7 +813,7 @@ if __name__ == '__main__':
             frame_main.Show()
             app_main.MainLoop()
     except TypeError:
-        blue('shutdown')
+        run_blue('shutdown')
 
 # 下一个项目绝对不会不写注释了 hhh
 

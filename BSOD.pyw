@@ -2,6 +2,9 @@ import helper
 import wx
 
 app = wx.App()
-frame = helper.blue('show')
-frame.Show()
+frame = helper.run_blue('show')
+try:
+    frame.Show()
+except:
+    pass
 app.MainLoop()
