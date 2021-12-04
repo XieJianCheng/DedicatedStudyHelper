@@ -12,7 +12,7 @@ import time
 import wx
 from module import EAD
 
-version = 'v1.6.7'
+version = 'v1.6.8'
 
 ########################################################################################################################
 
@@ -167,8 +167,21 @@ def read_ini():
     return final_color, final_face, final_bsod
 
 
-run_read = read_ini()       # 读取配置
-print(run_read)     # debugging
+def read_word():
+    # 读取
+    with open('data/BSOD.txt', 'r+', encoding='utf-8') as fo:
+        got_list = fo.readlines()
+        got_str = """"""
+        for i in got_list:
+            got_str += i
+        got_str = got_str.strip()
+
+    # 返回结果
+    return got_str
+
+
+run_read_ini = read_ini()       # 读取配置
+run_read_word = read_word()     # 读取文字
 
 
 class blue_screen_win98(wx.Frame):
@@ -416,13 +429,13 @@ class blue_screen_win10(wx.Frame):
         pnl = wx.Panel(self)
 
         # 文字控件
-        word_face = wx.StaticText(pnl, label=run_read[1], pos=(200, 100))
+        word_face = wx.StaticText(pnl, label=run_read_ini[1], pos=(200, 100))
         word_contents_1 = wx.StaticText(pnl, label='你的设备遇到问题，需要关机。\n我们只收集某些错误信息，然后为你关闭电脑。', pos=(200, 320))
         word_contents_2 = wx.StaticText(pnl, label='90%完成', pos=(200, 510))
         img = wx.Image('image/QR.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap()                  # 假二维码
         wx.StaticBitmap(pnl, -1, img, (200, 605), (img.GetWidth(), img.GetHeight()))    # 假二维码
         word_more_1 = wx.StaticText(pnl, label='有关此问题的详细信息和可能的解决方法，请访问\nC:\windows\system32', pos=(520, 610))
-        word_more_2 = wx.StaticText(pnl, label='如果致电支持人员，请向他们提供以下信息：\n终止代码：YOU  SHOULD  STUDY  HARD\n失败的操作：play.exe', pos=(520, 750))
+        word_more_2 = wx.StaticText(pnl, label=f'如果致电支持人员，请向他们提供以下信息：\n终止代码：{run_read_word}\n失败的操作：play.exe', pos=(520, 750))
 
         # 字体
         font_face = wx.Font(pointSize=122, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False,
@@ -438,7 +451,7 @@ class blue_screen_win10(wx.Frame):
         word_more_2.SetFont(font_more)
 
         # 颜色
-        color_background = run_read[0]
+        color_background = run_read_ini[0]
         color_contents = (255, 255, 255)
         pnl.SetBackgroundColour(color_background)
         word_face.SetForegroundColour(color_contents)
@@ -469,11 +482,11 @@ def run_blue(run_state, month='0', day='0', hour='0', minute='0'):
     app_blue = wx.App()
 
     # 要调用哪个蓝屏
-    if run_read[2] == 'win98':
+    if run_read_ini[2] == 'win98':
         frame_blue = blue_screen_win98(run_state, month, day, hour, minute, parent=None, id=-1)
-    elif run_read[2] == 'winxp':
+    elif run_read_ini[2] == 'winxp':
         frame_blue = blue_screen_winxp(run_state, month, day, hour, minute, parent=None, id=-1)
-    elif run_read[2] == 'win7':
+    elif run_read_ini[2] == 'win7':
         frame_blue = blue_screen_win7(run_state, month, day, hour, minute, parent=None, id=-1)
     else:
         frame_blue = blue_screen_win10(run_state, month, day, hour, minute, parent=None, id=-1)
@@ -733,7 +746,7 @@ Github地址：https://www.github.com/XieJianCheng/DedicatedStudyHelper/
     def run_log(event):
         passage_str = f"""更新日志
 
-当前版本：{version}（最新）
+当前版本：{version}
 
 v1.2.1：
 1. 换了一种时间计算方式，避免时间是负数的情况
@@ -801,7 +814,8 @@ v1.6.7:
 
         run_blue('record', send_month, send_day, send_hour, send_minute)
 
-    def run_ini(self, event):
+    @staticmethod
+    def run_ini(event):
         os.startfile('BSOD.ini')
 
 
