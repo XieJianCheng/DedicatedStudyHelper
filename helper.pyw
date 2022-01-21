@@ -11,8 +11,16 @@ import os
 import time
 import wx
 from module import EAD
+import ctypes
 
-version = 'v1.6.8'
+# 版本号
+version = 'v1.6.9'
+
+# 获取屏幕尺寸，为了适配1920*1080分辨率以上的屏幕
+winapi = ctypes.windll.user32
+screen_x = winapi.GetSystemMetrics(0)
+screen_y = winapi.GetSystemMetrics(1)
+
 
 ########################################################################################################################
 
@@ -33,7 +41,8 @@ class commands:
             _str_now_hour = now_hour
             _str_now_minute = now_minute
 
-            write_string = EAD.compiling(f'{_str_now_mouth}{_str_now_day}{_str_now_hour}{_str_now_minute}', EAD.password_character_set(True))
+            write_string = EAD.compiling(f'{_str_now_mouth}{_str_now_day}{_str_now_hour}{_str_now_minute}',
+                                         EAD.password_character_set(True))
 
             fo_f.write(write_string)
             fo_f.close()
@@ -53,7 +62,8 @@ class commands:
             str_now_hour = now_hour
             str_now_minute = now_minute
 
-            write_string = EAD.compiling(f'{str_now_mouth}{str_now_day}{str_now_hour}{str_now_minute}', EAD.password_character_set(True))
+            write_string = EAD.compiling(f'{str_now_mouth}{str_now_day}{str_now_hour}{str_now_minute}',
+                                         EAD.password_character_set(True))
 
             with open('data/record.txt', 'w+', encoding='utf-8') as fo:
                 fo.write(write_string)
@@ -70,7 +80,8 @@ class commands:
             control_minute = f'0{control_minute}'
 
         with open('data/duration.txt', 'w+', encoding='utf-8') as fo1:
-            fo1.write(EAD.compiling(f'{control_month}{control_day}{control_hour}{control_minute}', EAD.password_character_set(True)))
+            fo1.write(EAD.compiling(f'{control_month}{control_day}{control_hour}{control_minute}',
+                                    EAD.password_character_set(True)))
 
     @staticmethod
     def read_duration():
@@ -130,6 +141,7 @@ class commands:
 
 cmds = commands()
 
+
 ########################################################################################################################
 
 
@@ -140,14 +152,16 @@ def read_ini():
         got_color = got_all[0]
         got_face = got_all[1]
         got_bsod = got_all[2]
+        got_size = got_all[3]
 
     # 处理
     processed_got_color = got_color
     processed_got_face = got_face.strip()[1:-1]
     processed_got_bsod = got_bsod.strip()
+    processed_got_size = got_size.strip()
 
     # 得到最后的参数
-    final_color = []        # 颜色
+    final_color = []  # 颜色
     re_color = r'[0-9]'
     tmp_color = ''
     for i in processed_got_color:
@@ -160,8 +174,8 @@ def read_ini():
         found = []  # 清空
     print(f'final_color:{final_color}')  # debugging
     tuple(final_color)
-    final_face = processed_got_face     # 脸
-    final_bsod = processed_got_bsod     # 要调用蓝屏
+    final_face = processed_got_face  # 脸
+    final_bsod = processed_got_bsod  # 要调用蓝屏
 
     # 返回结果
     return final_color, final_face, final_bsod
@@ -180,12 +194,12 @@ def read_word():
     return got_str
 
 
-run_read_ini = read_ini()       # 读取配置
-run_read_word = read_word()     # 读取文字
+run_read_ini = read_ini()  # 读取配置
+run_read_word = read_word()  # 读取文字
 
 
 class blue_screen_win98(wx.Frame):
-    size = (1938, 1123)
+    size = (screen_x + 18, screen_y + 43)
 
     def __init__(self, run_state='show', mo='0', da='0', ho='0', mi='0', parent=None, id=-1):
         # 初始化
@@ -222,7 +236,7 @@ application will be terminated.
 
         # 字体
         font_all = wx.Font(pointSize=12, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False,
-                            faceName='NSimSun')
+                           faceName='NSimSun')
         show_title.SetFont(font_all)
         show_title.SetFont(font_all)
         show_word.SetFont(font_all)
@@ -259,7 +273,7 @@ application will be terminated.
 
 
 class blue_screen_winxp(wx.Frame):
-    size = (1938, 1123)
+    size = (screen_x + 18, screen_y + 43)
 
     def __init__(self, run_state='show', mo='0', da='0', ho='0', mi='0', parent=None, id=-1):
         # 初始化
@@ -346,7 +360,7 @@ An unspecified error occurred."""
 
 
 class blue_screen_win7(wx.Frame):
-    size = (1938, 1123)
+    size = (screen_x + 18, screen_y + 43)
 
     def __init__(self, run_state='show', mo='0', da='0', ho='0', mi='0', parent=None, id=-1):
         # 初始化
@@ -418,11 +432,11 @@ Initializing disk for crash dump ...."""
 
 
 class blue_screen_win10(wx.Frame):
-    size = (1938, 1123)
+    size = (screen_x + 18, screen_y + 43)
 
     def __init__(self, run_state='show', mo='0', da='0', ho='0', mi='0', parent=None, id=-1):
         # 初始化
-        wx.Frame.__init__(self, parent, id, 'BSOD', pos=(-10, -35))
+        wx.Frame.__init__(self, parent, id, 'BSOD', pos=(-8, -35))
         wx.Frame.SetMinSize(self, size=self.size)
         wx.Frame.SetMaxSize(self, size=self.size)
         wx.Frame.SetSize(self, size=self.size)
@@ -432,10 +446,11 @@ class blue_screen_win10(wx.Frame):
         word_face = wx.StaticText(pnl, label=run_read_ini[1], pos=(200, 100))
         word_contents_1 = wx.StaticText(pnl, label='你的设备遇到问题，需要关机。\n我们只收集某些错误信息，然后为你关闭电脑。', pos=(200, 320))
         word_contents_2 = wx.StaticText(pnl, label='90%完成', pos=(200, 510))
-        img = wx.Image('image/QR.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap()                  # 假二维码
-        wx.StaticBitmap(pnl, -1, img, (200, 605), (img.GetWidth(), img.GetHeight()))    # 假二维码
-        word_more_1 = wx.StaticText(pnl, label='有关此问题的详细信息和可能的解决方法，请访问\nC:\windows\system32', pos=(520, 610))
-        word_more_2 = wx.StaticText(pnl, label=f'如果致电支持人员，请向他们提供以下信息：\n终止代码：{run_read_word}\n失败的操作：play.exe', pos=(520, 750))
+        img = wx.Image('image/QR.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap()  # 假二维码
+        wx.StaticBitmap(pnl, -1, img, (200, 605), (img.GetWidth(), img.GetHeight()))  # 假二维码
+        word_more_1 = wx.StaticText(pnl, label='有关此问题的详细信息和可能的解决方法，请访问\nF:\python_projects\DedicatedStudyHelper', pos=(520, 610))
+        word_more_2 = wx.StaticText(pnl, label=f'如果致电支持人员，请向他们提供以下信息：\n终止代码：{run_read_word}\n失败的操作：play.exe',
+                                    pos=(520, 750))
 
         # 字体
         font_face = wx.Font(pointSize=122, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False,
@@ -628,7 +643,7 @@ class window(wx.Frame):
         font_quit = wx.Font(pointSize=18, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False,
                             faceName='FZLiHeiS ExtraBold')
         font_about = wx.Font(pointSize=14, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False,
-                            faceName='方正启功行楷 简')
+                             faceName='方正启功行楷 简')
         title.SetFont(font_title)
         bt_1h.SetFont(font_contents)
         bt_2h.SetFont(font_contents)
@@ -837,8 +852,6 @@ if __name__ == '__main__':
 # v1.4.0结束时间 2021.11.19 22:54
 # v1.6.3结束时间 2021.11.24 19:51
 # v1.6.7结束时间 2021.11.28 18:19
-
-
 
 
 # 空两行是我对这条注释的尊重，再空两行是我对项目的不舍
