@@ -14,13 +14,12 @@ from module import EAD
 import ctypes
 
 # 版本号
-version = 'v1.6.9'
+version = 'v1.6.10'
 
 # 获取屏幕尺寸，为了适配1920*1080分辨率以上的屏幕
 winapi = ctypes.windll.user32
 screen_x = winapi.GetSystemMetrics(0)
 screen_y = winapi.GetSystemMetrics(1)
-
 
 ########################################################################################################################
 
@@ -448,7 +447,9 @@ class blue_screen_win10(wx.Frame):
         word_contents_2 = wx.StaticText(pnl, label='90%完成', pos=(200, 510))
         img = wx.Image('image/QR.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap()  # 假二维码
         wx.StaticBitmap(pnl, -1, img, (200, 605), (img.GetWidth(), img.GetHeight()))  # 假二维码
-        word_more_1 = wx.StaticText(pnl, label='有关此问题的详细信息和可能的解决方法，请访问\nF:\python_projects\DedicatedStudyHelper', pos=(520, 610))
+        # 获取显示在蓝屏的路径
+        file_dir = __file__[0:-len(re.findall(r'\w+.[py|w]+$', __file__)[0]) - 1]
+        word_more_1 = wx.StaticText(pnl, label=f'有关此问题的详细信息和可能的解决方法，请访问\n{file_dir}', pos=(520, 610))
         word_more_2 = wx.StaticText(pnl, label=f'如果致电支持人员，请向他们提供以下信息：\n终止代码：{run_read_word}\n失败的操作：play.exe',
                                     pos=(520, 750))
 
@@ -799,7 +800,10 @@ v1.6.6:
 v1.6.7:
 可以直接修改蓝屏配置，
 这应该是最后一个版本了吧，以后也不太可能会有功能更新了，版本号也不会高过v1.6了
-"""
+
+v1.6.10:
+在写关机的时候，顺便优化了win10蓝屏，显示的路径改为真实路径，
+另外说一句，这个项目从进入v1.6.x和其他原因干扰开始，一直在变味"""
 
         wx.MessageBox(passage_str, '软件更新日志')
 
