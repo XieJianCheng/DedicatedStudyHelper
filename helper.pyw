@@ -14,7 +14,7 @@ from module import EAD
 import ctypes
 
 # 版本号
-version = 'v1.6.10'
+version = 'v1.6.11'
 
 # 获取屏幕尺寸，为了适配1920*1080分辨率以上的屏幕
 winapi = ctypes.windll.user32
@@ -135,7 +135,7 @@ class commands:
     @staticmethod
     def shutdown():
         print('in commands.shutdown()')
-        os.system('shutdown -s -t 3 -c 还没到时间不能开机，好好去复习')
+        print('shutdown -h')
 
 
 cmds = commands()
@@ -433,7 +433,13 @@ Initializing disk for crash dump ...."""
 class blue_screen_win10(wx.Frame):
     size = (screen_x + 18, screen_y + 43)
 
-    def __init__(self, run_state='show', mo='0', da='0', ho='0', mi='0', parent=None, id=-1):
+    def __init__(self, run_state_='show', mo_='0', da_='0', ho_='0', mi_='0', parent=None, id=-1):
+        global run_state, mo, da, ho, mi
+        run_state = run_state_
+        mo = mo_
+        da = da_
+        ho = ho_
+        mi = mi_
         # 初始化
         wx.Frame.__init__(self, parent, id, 'BSOD', pos=(-8, -35))
         wx.Frame.SetMinSize(self, size=self.size)
@@ -442,17 +448,31 @@ class blue_screen_win10(wx.Frame):
         pnl = wx.Panel(self)
 
         # 文字控件
-        word_face = wx.StaticText(pnl, label=run_read_ini[1], pos=(200, 100))
-        word_contents_1 = wx.StaticText(pnl, label='你的设备遇到问题，需要关机。\n我们只收集某些错误信息，然后为你关闭电脑。', pos=(200, 320))
-        word_contents_2 = wx.StaticText(pnl, label='90%完成', pos=(200, 510))
+        word_face = wx.StaticText(pnl, label=run_read_ini[1])   # :(
+        word_contents_1 = wx.StaticText(pnl, label='你的设备遇到问题，需要关机。\n我们只收集某些错误信息，然后为你关闭电脑。')
+        self.word_contents_2 = wx.StaticText(pnl, label='90%完成')
         img = wx.Image('image/QR.png', wx.BITMAP_TYPE_ANY).ConvertToBitmap()  # 假二维码
-        wx.StaticBitmap(pnl, -1, img, (200, 605), (img.GetWidth(), img.GetHeight()))  # 假二维码
+        show_img = wx.StaticBitmap(pnl, -1, img, (img.GetWidth(), img.GetHeight()))  # 假二维码
         # 获取显示在蓝屏的路径
         file_dir = __file__[0:-len(re.findall(r'\w+.[py|w]+$', __file__)[0]) - 1]
-        word_more_1 = wx.StaticText(pnl, label=f'有关此问题的详细信息和可能的解决方法，请访问\n{file_dir}', pos=(520, 610))
-        word_more_2 = wx.StaticText(pnl, label=f'如果致电支持人员，请向他们提供以下信息：\n终止代码：{run_read_word}\n失败的操作：play.exe',
-                                    pos=(520, 750))
+        word_more_1 = wx.StaticText(pnl, label=f'有关此问题的详细信息和可能的解决方法，请访问\n{file_dir}')
+        word_more_2 = wx.StaticText(pnl, label=f'如果致电支持人员，请向他们提供以下信息：\n终止代码：{run_read_word}\n失败的操作：play.exe')
 
+        # 布局
+        sizer_v_info = wx.BoxSizer(wx.VERTICAL)
+        sizer_v_info.Add(word_more_1, proportion=0, flag=wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.BOTTOM, border=32)
+        sizer_v_info.Add(word_more_2, proportion=0, flag=wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.TOP, border=32)
+        sizer_h_info = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_h_info.Add(show_img, proportion=0, flag=wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.RIGHT, border=60)
+        sizer_h_info.Add(sizer_v_info, proportion=0, flag=wx.ALIGN_LEFT | wx.ALIGN_TOP)
+        sizer_v_all = wx.BoxSizer(wx.VERTICAL)
+        sizer_v_all.Add(word_face, proportion=0, flag=wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.BOTTOM, border=5)
+        sizer_v_all.Add(word_contents_1, proportion=0, flag=wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.BOTTOM, border=40)
+        sizer_v_all.Add(self.word_contents_2, proportion=0, flag=wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.BOTTOM, border=33)
+        sizer_v_all.Add(sizer_h_info, proportion=0, flag=wx.ALIGN_LEFT | wx.ALIGN_TOP)
+        sizer_h_all = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_h_all.Add(sizer_v_all, proportion=0, flag=wx.ALIGN_LEFT | wx.ALIGN_TOP | wx.LEFT | wx.TOP, border=100)
+        pnl.SetSizer(sizer_h_all)
         # 字体
         font_face = wx.Font(pointSize=122, family=wx.DEFAULT, style=wx.NORMAL, weight=wx.LIGHT, underline=False,
                             faceName='Microsoft YaHei')
@@ -462,7 +482,7 @@ class blue_screen_win10(wx.Frame):
                             faceName='Microsoft YaHei')
         word_face.SetFont(font_face)
         word_contents_1.SetFont(font_contents)
-        word_contents_2.SetFont(font_contents)
+        self.word_contents_2.SetFont(font_contents)
         word_more_1.SetFont(font_more)
         word_more_2.SetFont(font_more)
 
@@ -472,7 +492,7 @@ class blue_screen_win10(wx.Frame):
         pnl.SetBackgroundColour(color_background)
         word_face.SetForegroundColour(color_contents)
         word_contents_1.SetForegroundColour(color_contents)
-        word_contents_2.SetForegroundColour(color_contents)
+        self.word_contents_2.SetForegroundColour(color_contents)
         word_more_1.SetForegroundColour(color_contents)
         word_more_2.SetForegroundColour(color_contents)
 
@@ -485,6 +505,12 @@ class blue_screen_win10(wx.Frame):
             self.icon = wx.Icon(name="image/icon_BSOD.ico", type=wx.BITMAP_TYPE_ICO)
             self.SetIcon(self.icon)
 
+        if run_state_ == 'shutdown':
+            wx.FutureCall(5000, self.shutdown)
+        # self.shutdown()
+
+    @staticmethod
+    def shutdown():
         if run_state == 'show':
             pass
         elif run_state == 'shutdown':
@@ -493,19 +519,24 @@ class blue_screen_win10(wx.Frame):
             main(mo, da, ho, mi)
 
 
-def run_blue(run_state, month='0', day='0', hour='0', minute='0'):
+def run_blue(run_state__, month='0', day='0', hour='0', minute='0'):
+    # 不管什么，主程序就是blue了一次
+    global blue_times
+    blue_times = 0
+    blue_times += 1
+
     # 假蓝屏窗口
     app_blue = wx.App()
 
     # 要调用哪个蓝屏
     if run_read_ini[2] == 'win98':
-        frame_blue = blue_screen_win98(run_state, month, day, hour, minute, parent=None, id=-1)
+        frame_blue = blue_screen_win98(run_state__, month, day, hour, minute, parent=None, id=-1)
     elif run_read_ini[2] == 'winxp':
-        frame_blue = blue_screen_winxp(run_state, month, day, hour, minute, parent=None, id=-1)
+        frame_blue = blue_screen_winxp(run_state__, month, day, hour, minute, parent=None, id=-1)
     elif run_read_ini[2] == 'win7':
-        frame_blue = blue_screen_win7(run_state, month, day, hour, minute, parent=None, id=-1)
+        frame_blue = blue_screen_win7(run_state__, month, day, hour, minute, parent=None, id=-1)
     else:
-        frame_blue = blue_screen_win10(run_state, month, day, hour, minute, parent=None, id=-1)
+        frame_blue = blue_screen_win10(run_state__, month, day, hour, minute, parent=None, id=-1)
 
     frame_blue.Show()
     # 运行到这里就会进入窗口循环
@@ -802,8 +833,18 @@ v1.6.7:
 这应该是最后一个版本了吧，以后也不太可能会有功能更新了，版本号也不会高过v1.6了
 
 v1.6.10:
-在写关机的时候，顺便优化了win10蓝屏，显示的路径改为真实路径，
-另外说一句，这个项目从进入v1.6.x和其他原因干扰开始，一直在变味"""
+在写关机的时候，顺便优化了win10蓝屏，显示的路径改为真实路径。
+另外说一句，这个项目从进入v1.6.x和其他原因干扰开始，一直在变味，
+
+那时对数据处理的热爱，现在早已被人无情的践踏
+那时写数据处理的热情，现在早已被人无知地浇灭
+
+v1.6.11:
+1.独立出来了一个蓝屏，主要是因为主程序的蓝屏跟其他东西过度依赖，
+根本没法进行更多的操作
+2.在蓝屏中加入了sizer，
+百分比会动态更改（独立版才有）
+（小魏你开心了吧"""
 
         wx.MessageBox(passage_str, '软件更新日志')
 
